@@ -1,10 +1,12 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+// import {VRFConsumerBase} from "../lib/chainlink-brownie-contracts/contracts/src/v0.8/dev/VRFConsumerBase.sol"
+
 /**
  * @title Lottery smart contract
  * @author Muhammad Masood
- * @notice Using Chainlink oracle to get real random winner, and automate.
+ * @notice Using Chainlink oracle to get real random winner, and automate the lotetery.
  */
  
 contract Raffle {
