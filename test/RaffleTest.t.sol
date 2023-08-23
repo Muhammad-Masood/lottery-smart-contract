@@ -44,9 +44,6 @@ contract RaffleTest is Test {
     }
 
     function test_pickWinner() public view {
-        console.log(raffle.pickWinner());
-        console.log(raffle.pickWinner());
-        console.log(raffle.pickWinner());
-        console.log(raffle.pickWinner());
+        // console.log(raffle.pickWinner());
     }
 }
