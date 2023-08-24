@@ -46,10 +46,12 @@ contract Raffle is VRFConsumerBaseV2{
     constructor(uint256 _lotteryPrice, uint256 _duration, 
     address _vrfCoordinator, bytes32 _keyHash, uint64 _subscriptionId) VRFConsumerBaseV2(_vrfCoordinator) {
         i_lotteryPrice = _lotteryPrice;
+        s_lastTimestamp = block.timestamp;
         i_lotteryDuration = _duration;
         i_VRFCoordinator = VRFCoordinatorV2Interface(_vrfCoordinator);
         i_keyHash = _keyHash;
         i_subscriptionId = _subscriptionId;
+        s_raffleState = RaffleState.OPEN;
     }
 
     function enterRaffle() external payable {
@@ -58,20 +60,6 @@ contract Raffle is VRFConsumerBaseV2{
         if(s_raffleState != RaffleState.OPEN) revert Raffle__RaffleClosed();
         s_participants.push(msg.sender);
         emit NewParticipant(msg.sender);
-    }
-
-    function fulfillRandomWords(
-        uint256 /**_requestId */, 
-        uint256[] memory _randomWords
-    ) internal override {
-       uint256 winnerIndex = _randomWords[0] % s_participants.length;
-       address payable winner = payable(s_participants[winnerIndex]);
-       emit WinnerPicked(winner);
-       s_participants = new address payable[](0);
-       s_lastTimestamp = block.timestamp;
-       s_raffleState = RaffleState.OPEN;
-       (bool success,) = winner.call{value:address(this).balance}("");
-       if(!success) revert Raffle__WinnerTransferFailed();
     }
 
     /**
@@ -99,8 +87,8 @@ contract Raffle is VRFConsumerBaseV2{
      function performUpkeep(bytes calldata /* performData */) external {
         (bool upkeepNeeded, ) = checkUpkeep("");
         if(!upkeepNeeded) revert Raffle__UpkeepNotNeeded();
-        if(!upkeepNeeded) revert Raffle__UnsufficientFunds();
-        if(!(block.timestamp > s_lastTimestamp + i_lotteryDuration)) revert Raffle_DurationNotPassed();
+        // if(!upkeepNeeded) revert Raffle__UnsufficientFunds();
+        // if(!(block.timestamp > s_lastTimestamp + i_lotteryDuration)) revert Raffle_DurationNotPassed();
         s_raffleState = RaffleState.CLOSED;
         i_VRFCoordinator.requestRandomWords(
             i_keyHash,
@@ -110,6 +98,20 @@ contract Raffle is VRFConsumerBaseV2{
             NUM_WORDS
         );
     }
+    
+    function fulfillRandomWords(
+        uint256 /**_requestId */, 
+        uint256[] memory _randomWords
+    ) internal override {
+       uint256 winnerIndex = _randomWords[0] % s_participants.length;
+       address payable winner = payable(s_participants[winnerIndex]);
+       emit WinnerPicked(winner);
+       s_participants = new address payable[](0);
+       s_lastTimestamp = block.timestamp;
+       s_raffleState = RaffleState.OPEN;
+       (bool success,) = winner.call{value:address(this).balance}("");
+       if(!success) revert Raffle__WinnerTransferFailed();
+    }
 
     function getLotteryPrice() public view returns(uint256){
         return i_lotteryPrice;
@@ -117,5 +119,17 @@ contract Raffle is VRFConsumerBaseV2{
 
     function getParticipants() public view returns (address [] memory){
         return s_participants;
+    }
+
+    function getRaffleState() public view returns (RaffleState) {
+        return s_raffleState;
+    }
+
+    function getRaffleDuration() public view returns (uint256) {
+        return i_lotteryDuration;
+    }
+
+    function getLastTimeStamp() public view returns (uint256) {
+        return s_lastTimestamp;
     }
 }
