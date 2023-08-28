@@ -3,7 +3,7 @@
 // @dev This contract has been adapted to fit with dappTools
 pragma solidity ^0.8.0;
 
-import "@solmate/tokens/ERC20.sol";
+import {ERC20} from "@solmate/contracts/tokens/ERC20.sol";
 
 interface ERC677Receiver {
     function onTokenTransfer(
@@ -66,4 +66,8 @@ contract LinkToken is ERC20 {
         }
         return length > 0;
     }
+
+    // function balance(address _address) public view returns (uint256) {
+    //     return getBalance(_address);
+    // }
 }

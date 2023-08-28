@@ -19,7 +19,7 @@ contract Raffle is VRFConsumerBaseV2{
     error Raffle__RaffleClosed();
     error Raffle__UpkeepNotNeeded();
 
-    enum RaffleState {
+enum RaffleState {
         OPEN,
         CLOSED
     }
@@ -42,6 +42,7 @@ contract Raffle is VRFConsumerBaseV2{
 
     event NewParticipant (address indexed participant);
     event WinnerPicked (address indexed winner);
+    event WinnerRequestId(uint256 indexed requestId);
 
     constructor(uint256 _lotteryPrice, uint256 _duration, 
     address _vrfCoordinator, bytes32 _keyHash, uint64 _subscriptionId) VRFConsumerBaseV2(_vrfCoordinator) {
@@ -77,9 +78,8 @@ contract Raffle is VRFConsumerBaseV2{
         returns (bool upkeepNeeded, bytes memory performData) {
             bool timePassed = (block.timestamp > s_lastTimestamp + i_lotteryDuration);
             bool isOpen = (s_raffleState == RaffleState.OPEN);
-            bool hasParticipants = (s_participants.length > 0);
             bool hasBalance = (address(this).balance > 0);
-            upkeepNeeded = (timePassed && isOpen && hasParticipants && hasBalance);
+            upkeepNeeded = (timePassed && isOpen && hasBalance);
             return (upkeepNeeded,"0x0");
         }
 
@@ -87,16 +87,15 @@ contract Raffle is VRFConsumerBaseV2{
      function performUpkeep(bytes calldata /* performData */) external {
         (bool upkeepNeeded, ) = checkUpkeep("");
         if(!upkeepNeeded) revert Raffle__UpkeepNotNeeded();
-        // if(!upkeepNeeded) revert Raffle__UnsufficientFunds();
-        // if(!(block.timestamp > s_lastTimestamp + i_lotteryDuration)) revert Raffle_DurationNotPassed();
         s_raffleState = RaffleState.CLOSED;
-        i_VRFCoordinator.requestRandomWords(
+        uint256 requestId = i_VRFCoordinator.requestRandomWords(
             i_keyHash,
             i_subscriptionId,
             REQUEST_CONFIRMATIONS,
             CALLBACK_GAS_LIMIT,
             NUM_WORDS
         );
+        emit WinnerRequestId(requestId);
     }
     
     function fulfillRandomWords(
