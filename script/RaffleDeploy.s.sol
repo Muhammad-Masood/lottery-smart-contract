@@ -70,6 +70,7 @@ contract RaffleDeployScript is Script {
         // add consumer -> RAFFLE contract
         console.log("Link Token: ", linkToken);
         console.log("Contract deployed to ", address(raffle));
+        console.log("Deployed contract balance", address(raffle).balance);
         console.log("Vrf Coordinator: ", vrfCoordinatorAddress);
         return (raffle, helperConfig);
     }

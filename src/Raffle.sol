@@ -25,8 +25,8 @@ enum RaffleState {
     }
 
     uint32 private constant CALLBACK_GAS_LIMIT = 100000;
-    uint16 private constant REQUEST_CONFIRMATIONS = 1;
-    uint32 private constant NUM_WORDS = 32;
+    uint16 private constant REQUEST_CONFIRMATIONS = 3;
+    uint32 private constant NUM_WORDS = 1;
 
     // @dev duration of the lottery
     uint256 private immutable i_lotteryDuration; 
@@ -41,7 +41,7 @@ enum RaffleState {
     address [] private s_participants;
 
     event NewParticipant (address indexed participant);
-    event WinnerPicked (address indexed winner);
+    event WinnerPicked (address indexed winner,uint256 prize);
     event WinnerRequestId(uint256 indexed requestId);
 
     constructor(uint256 _lotteryPrice, uint256 _duration, 
@@ -99,12 +99,12 @@ enum RaffleState {
     }
     
     function fulfillRandomWords(
-        uint256 /**_requestId */, 
+        uint256 /**_requestId */,
         uint256[] memory _randomWords
     ) internal override {
        uint256 winnerIndex = _randomWords[0] % s_participants.length;
        address payable winner = payable(s_participants[winnerIndex]);
-       emit WinnerPicked(winner);
+       emit WinnerPicked(winner,address(this).balance);
        s_participants = new address payable[](0);
        s_lastTimestamp = block.timestamp;
        s_raffleState = RaffleState.OPEN;

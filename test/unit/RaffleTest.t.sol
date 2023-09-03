@@ -41,7 +41,7 @@ contract RaffleTest is Test {
         (raffle,helperConfig) = raffleScript.run();
         (vrfCoordinator,,,,) = helperConfig.getNetworkConfig();
         vm.deal(PARTICIPANT,1 ether);
-        lotteryTicket = raffle.getLotteryPrice();   
+        lotteryTicket = raffle.getLotteryPrice();
     }
 
     /////////////////////////
@@ -86,9 +86,9 @@ contract RaffleTest is Test {
 
     function test_pickWinner_cantEnterWhenRaffleIsClosed() public raffleEnterAndTimePassed {
         raffle.performUpkeep("");
-        // vm.expectRevert(Raffle.Raffle__RaffleClosed.selector);
-        // vm.prank(PARTICIPANT);
-        // raffle.enterRaffle{value:lotteryTicket}();
+        vm.expectRevert(Raffle.Raffle__RaffleClosed.selector);
+        vm.prank(PARTICIPANT);
+        raffle.enterRaffle{value:lotteryTicket}();
     }
 
     /////////////////////////
